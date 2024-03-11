@@ -1,0 +1,139 @@
+
+// Candle Time Remaining Indicator
+// Developer's Site: forexroboteasy.com
+// Developer: Forex Robot Easy Team
+
+#property indicator_chart_window
+#property indicator_buffers 2
+#property indicator_color1 Yellow
+#property indicator_color2 Red
+
+double Buffer1[];
+double Buffer2[];
+int xPosition;
+int yPosition;
+color textColor;
+color backgroundColor;
+int fontType;
+int fontSize;
+
+// Initialization function
+int OnInit()
+{
+    // Set indicator buffers
+    SetIndexBuffer(0, Buffer1);
+    SetIndexBuffer(1, Buffer2);
+    
+    // Set indicator label
+    SetIndexLabel(0, 'Time Remaining');
+    
+    // Set indicator settings
+    xPosition = 10; // Default x position
+    yPosition = 20; // Default y position
+    textColor = clrWhite; // Default text color
+    backgroundColor = clrBlack; // Default background color
+    fontType = 0; // Default font type
+    fontSize = 10; // Default font size
+    
+    // Set chart properties
+    ChartSetInteger(0, CHART_EVENT_MOUSE_MOVE, true);
+    
+    return(INIT_SUCCEEDED);
+}
+
+// Deinitialization function
+void OnDeinit(const int reason)
+{
+    // Remove indicator buffers
+    IndicatorBuffers(0);
+}
+
+// Calculation function
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+    int limit = rates_total - prev_calculated;
+    
+    // Calculate remaining time for each candle
+    for (int i = 0; i < limit; i++)
+    {
+        double remainingTime = TimeCurrent() - time[i];
+        Buffer1[i] = remainingTime / 1000; // Convert milliseconds to seconds
+        Buffer2[i] = remainingTime / 60000; // Convert milliseconds to minutes
+    }
+    
+    return(rates_total);
+}
+
+// Custom function to set indicator settings
+void SetIndicatorSettings(int x, int y, color text, color background, int font, int size)
+{
+    xPosition = x; // Set x position
+    yPosition = y; // Set y position
+    textColor = text; // Set text color
+    backgroundColor = background; // Set background color
+    fontType = font; // Set font type
+    fontSize = size; // Set font size
+}
+
+// Custom function to draw indicator
+void DrawIndicator()
+{
+    // Set chart properties
+    ChartSetInteger(0, CHART_EVENT_MOUSE_MOVE, true);
+    
+    // Draw indicator text
+    ObjectCreate('indicator_text', OBJ_LABEL, 0, 0, 0);
+    ObjectSetText('indicator_text', 'Remaining Time: ' + DoubleToString(Buffer1[0], 0), fontSize, 'Arial', textColor);
+    ObjectSet('indicator_text', OBJPROP_CORNER, 0);
+    ObjectSet('indicator_text', OBJPROP_XDISTANCE, xPosition);
+    ObjectSet('indicator_text', OBJPROP_YDISTANCE, yPosition);
+    ObjectSet('indicator_text', OBJPROP_COLOR, textColor);
+    ObjectSet('indicator_text', OBJPROP_BGCOLOR, backgroundColor);
+    ObjectSet('indicator_text', OBJPROP_FONT, fontType);
+    ObjectSet('indicator_text', OBJPROP_FONTSIZE, fontSize);
+}
+
+// Custom function to modify indicator settings
+void ModifySettings(int x, int y, color text, color background, int font, int size)
+{
+    ObjectDelete('indicator_text'); // Delete old indicator text
+    
+    // Set new indicator settings
+    SetIndicatorSettings(x, y, text, background, font, size);
+    
+    // Redraw indicator
+    DrawIndicator();
+}
+
+// Custom function to get indicator settings
+void GetSettings(int &x, int &y, color &text, color &background, int &font, int &size)
+{
+    x = xPosition; // Get x position
+    y = yPosition; // Get y position
+    text = textColor; // Get text color
+    background = backgroundColor; // Get background color
+    font = fontType; // Get font type
+    size = fontSize; // Get font size
+}
+
+// Custom function to handle chart events
+void OnChartEvent(const int id,
+                  const long &lparam,
+                  const double &dparam,
+                  const string &sparam)
+{
+    if (id == CHARTEVENT_MOUSE_MOVE)
+    {
+        // Update indicator settings when mouse moves on chart
+        ModifySettings(lparam, dparam, textColor, backgroundColor, fontType, fontSize);
+    }
+}
